@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -17,15 +18,6 @@ public class CustomUserDetails implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
 
         Collection<GrantedAuthority> collection = new ArrayList<>();
-
-        collection.add(new GrantedAuthority() {
-
-            @Override
-            public String getAuthority() {
-
-                return userEntity.getRole();
-            }
-        });
 
         return collection;
     }
@@ -45,6 +37,21 @@ public class CustomUserDetails implements UserDetails {
     public String getUsername() {
 
         return userEntity.getUsername();
+    }
+
+    public Integer getGender(){
+
+        return userEntity.getGender();
+    }
+
+    public String getName() {
+
+        return userEntity.getName();
+    }
+
+    public LocalDate getBirthdate() {
+
+        return userEntity.getBirthdate();
     }
 
     @Override
@@ -74,4 +81,5 @@ public class CustomUserDetails implements UserDetails {
     public UserEntity getUserEntity(){
         return userEntity;
     }
+
 }
