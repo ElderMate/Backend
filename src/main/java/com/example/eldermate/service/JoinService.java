@@ -41,4 +41,5 @@ public class JoinService {
         //레파지토리에 엔티티값을 저장
         userRepository.save(data);
     }
+
 }
