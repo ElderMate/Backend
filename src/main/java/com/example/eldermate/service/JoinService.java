@@ -1,11 +1,13 @@
 package com.example.eldermate.service;
 
+import com.example.eldermate.dto.JoinDTO;
 import com.example.eldermate.entity.UserEntity;
 import com.example.eldermate.repository.UserRepository;
-import com.example.eldermate.dto.JoinDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +20,9 @@ public class JoinService {
     public void joinProcess(JoinDTO joinDTO){
         String username = joinDTO.getUsername();
         String password = joinDTO.getPassword();
+        Integer gender = joinDTO.getGender();
+        String name = joinDTO.getName();
+        LocalDate birthdate = joinDTO.getBirthdate();
 
         //레파지토리에 해당 아이디를 사용하고 있는 유저가 있는지 확인
         Boolean isExist = userRepository.existsByUsername(username);
@@ -29,7 +34,9 @@ public class JoinService {
         UserEntity data = new UserEntity();
         data.setUsername(username);
         data.setPassword(bCryptPasswordEncoder.encode(password));
-        data.setRole("ROLE_USER");
+        data.setGender(gender);
+        data.setName(name);
+        data.setBirthdate(birthdate);
 
         //레파지토리에 엔티티값을 저장
         userRepository.save(data);
