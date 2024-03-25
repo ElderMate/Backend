@@ -81,5 +81,4 @@ public class CustomUserDetails implements UserDetails {
     public UserEntity getUserEntity(){
         return userEntity;
     }
-
 }
