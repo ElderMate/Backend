@@ -27,7 +27,7 @@ public class JoinService {
         //레파지토리에 해당 아이디를 사용하고 있는 유저가 있는지 확인
         Boolean isExist = userRepository.existsByUsername(username);
         if(isExist){
-            return;
+            throw new IllegalArgumentException("already exist user");
         }
 
         //위의 DTO에서 받아온 데이터를 기반으로 새로운 엔티티 생성

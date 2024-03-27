@@ -14,23 +14,28 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 @ToString
+@Table(name="User")
 public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name= "phoneNumber")
+    @Column(name= "phoneNumber", nullable = false, unique = true)
     private String username;
 
     private String token;
 
+    @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
     private Integer gender;
 
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private LocalDate birthdate;
 
 }
