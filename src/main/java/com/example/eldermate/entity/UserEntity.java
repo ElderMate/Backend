@@ -24,8 +24,6 @@ public class UserEntity {
     @Column(name= "phoneNumber", nullable = false, unique = true)
     private String username;
 
-    private String token;
-
     @Column(nullable = false)
     private String password;
 

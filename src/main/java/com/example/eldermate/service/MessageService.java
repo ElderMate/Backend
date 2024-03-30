@@ -1,9 +1,15 @@
 package com.example.eldermate.service;
 
+import com.example.eldermate.dto.CustomUserDetails;
+import com.example.eldermate.dto.MessageDTO;
 import com.example.eldermate.dto.RequestDto1;
 import com.example.eldermate.dto.ResponseDto1;
+import com.example.eldermate.entity.Message;
+import com.example.eldermate.entity.UserEntity;
+import com.example.eldermate.repository.MessageRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -13,11 +19,34 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MessageService {
+
+    private final MessageRepository messageRepository;
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper; //객체 -> Json으로 변경
     private final String HOST = "http://127.0.0.1:8000";
+
+    public void saveMessage(MessageDTO messageDTO, CustomUserDetails userDetails) {
+        UserEntity user = userDetails.getUserEntity();
+        log.info("MessageService : {} ", user.toString());
+        log.info("Received MessageDTO : {}", messageDTO.toString());
+
+        // DTO에서 받은 time 문자열을 LocalDateTime으로 변환
+        //LocalDateTime date = LocalDateTime.parse(messageDTO.getTime(), DateTimeFormatter.ISO_DATE);
+
+        Message message = Message.builder()
+                .pNum(messageDTO.getPNum())
+                .msg(messageDTO.getMsg())
+                .time(messageDTO.getTime())
+                .user(user)
+                .build();
+
+        log.info("MessageDTO : {} ", message.toString());
+
+        messageRepository.save(message);
+    }
 
     // 외부 api로 요청 + 응답을 가져오는 메서드
     private <T> ResponseEntity<T> requestToApi(String endPoint, String body, HttpMethod httpMethod, Class<T> reponseType){
@@ -52,8 +81,5 @@ public class MessageService {
             throw new RuntimeException();
         }
     }
-
-
-
 
 }
