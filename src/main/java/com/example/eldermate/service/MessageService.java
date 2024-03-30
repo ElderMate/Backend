@@ -45,6 +45,13 @@ public class MessageService {
 
         log.info("MessageDTO : {} ", message.toString());
 
+        // 외부 API로부터 category 예측 받기
+        RequestDto1 requestDto1 = new RequestDto1(message.getMsg()); // msg를 기반으로 DTO 생성
+        ResponseDto1 responseDto1 = predictCategory(requestDto1); // category 예측 받기
+
+        // 받은 category 값을 메시지에 설정
+        message.setCategory(responseDto1.response());
+
         messageRepository.save(message);
     }
 
@@ -64,21 +71,22 @@ public class MessageService {
         return restTemplate.exchange(url, httpMethod, httpEntity, reponseType);
     }
 
-    public ResponseDto1 testMethod() {
+    // 서비스 클래스 내부의 testMethod를 수정
+    public ResponseDto1 predictCategory(RequestDto1 requestDto1) {
         try {
-            RequestDto1 requestDto1 = new RequestDto1("텍스트 내용");
+            // 인자로 받은 requestDto1을 사용하여 body 생성
             String body = objectMapper.writeValueAsString(requestDto1);
 
-            ResponseEntity<ResponseDto1> responseDto1Entity = requestToApi(
+            ResponseEntity<ResponseDto1> responseEntity = requestToApi(
                     "/predict/",
                     body,
                     HttpMethod.POST,
                     ResponseDto1.class);
 
-            return responseDto1Entity.getBody();
+            return responseEntity.getBody();
 
         } catch (Exception e){
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
     }
 

@@ -29,6 +29,9 @@ public class Message {
     @Column
     private Boolean confirm;
 
+    @Column
+    private String category;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", nullable = false)
     private UserEntity user;
