@@ -6,33 +6,32 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.time.LocalDate;
-
 @Entity
-//내부 데이터를 뽑고 초기화하기 위해
 @Setter
 @Getter
 @NoArgsConstructor
 @ToString
-public class UserEntity {
+// 결제 취소
+public class Cancel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name= "phoneNumber", nullable = false, unique = true)
-    private String username;
+    @Column(nullable = false)
+    private String method;
 
     @Column(nullable = false)
-    private String password;
+    private String location;
 
     @Column(nullable = false)
-    private Integer gender;
+    private String time;
 
     @Column(nullable = false)
-    private String name;
+    private String cost;
 
-    @Column(nullable = false)
-    private LocalDate birthdate;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "msgId", nullable = false)
+    private Message message;
 
 }
