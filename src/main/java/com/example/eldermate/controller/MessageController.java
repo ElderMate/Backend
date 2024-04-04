@@ -29,4 +29,11 @@ public class MessageController {
         ResponseDto1 responseDto1 = messageService.predictCategory(requestDto1);
         return ResponseEntity.ok(responseDto1);
     }
+
+    @PostMapping("/keywords")
+    public ResponseEntity<ResponseDto1> extractKeywords(@RequestBody RequestDto1 requestDto1){
+        ResponseDto1 responseDto1 = messageService.extractKeywords(requestDto1);
+        return ResponseEntity.ok(responseDto1);
+    }
+
 }

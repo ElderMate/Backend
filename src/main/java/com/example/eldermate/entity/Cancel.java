@@ -1,10 +1,7 @@
 package com.example.eldermate.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Entity
 @Setter
@@ -33,5 +30,14 @@ public class Cancel {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "msgId", nullable = false)
     private Message message;
+
+    @Builder
+    public Cancel(String method, String location, String time, String cost, Message message){
+        this.method = method;
+        this.location = location;
+        this.time = time;
+        this.cost = cost;
+        this.message = message;
+    }
 
 }

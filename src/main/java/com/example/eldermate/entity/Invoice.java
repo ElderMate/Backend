@@ -30,4 +30,8 @@ public class Invoice {
     @Column(nullable = false)
     private String paymentReason;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "msgId", nullable = false)
+    private Message message;
+
 }
