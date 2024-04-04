@@ -1,6 +1,6 @@
 package com.example.eldermate.dto;
 
-public record CancelConfirmResponseDto(
+public record ConfirmResponseDto(
         String METHOD,
         String LOCATION,
         String TIME,

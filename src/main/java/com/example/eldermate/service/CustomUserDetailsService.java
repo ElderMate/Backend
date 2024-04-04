@@ -13,18 +13,21 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    //조회할 수 있기 위해, 데이터베이스에 접근할 수 있는 UserRepository를 주입
     private final UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserEntity userData = userRepository.findByUsername(username);
+        // 직접 UserEntity를 조회
+        UserEntity userEntity = userRepository.findByUsername(username);
 
-        if(userData!=null){
-            //CustomUserDetails는 데이터를 넘겨주기 때문에 DTO이다.
-            return new CustomUserDetails(userData);
+        // userEntity가 null인 경우 UsernameNotFoundException 발생
+        if (userEntity == null) {
+            throw new UsernameNotFoundException("User not found with username: " + username);
         }
 
-        return null;
+        System.out.println("로그인한 User 정보 : "+userEntity.toString()); //로딩된 userEntity 값을 확인
+
+        // UserEntity가 존재하는 경우, CustomUserDetails 객체 반환
+        return new CustomUserDetails(userEntity);
     }
 }

@@ -20,13 +20,14 @@ import org.springframework.web.client.RestTemplate;
 public class MessageService {
 
     private final MessageRepository messageRepository;
-    private final KeywordService keywordService;
 
-    private final CancelRepository cancelRepository;
     private final RejectRepository rejectRepository;
+    private final ConfirmRepository confirmRepository;
+    private final CancelRepository cancelRepository;
     private final OpenRepository openRepository;
     private final InvoiceRepository invoiceRepository;
     private final NonPaymentRepository nonPaymentRepository;
+    private final AutoTransferRepository autoTransferRepository;
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper; //객체 -> Json으로 변경
@@ -34,7 +35,7 @@ public class MessageService {
 
     public void saveMessage(MessageDTO messageDTO, CustomUserDetails userDetails) {
         UserEntity user = userDetails.getUserEntity();
-        log.info("MessageService : {} ", user.toString());
+        log.info("MessageService user check : {} ", user.toString());
         log.info("Received MessageDTO : {}", messageDTO.toString());
 
         // DTO에서 받은 time 문자열을 LocalDateTime으로 변환
@@ -47,8 +48,6 @@ public class MessageService {
                 .user(user)
                 .build();
 
-        log.info("MessageDTO : {} ", message.toString());
-
         // 외부 API로부터 category 예측 받기
         RequestDto1 requestDto1 = new RequestDto1(message.getMsg()); // msg를 기반으로 DTO 생성
         ResponseDto1 responseDto1 = predictCategory(requestDto1); // category 예측 받기
@@ -57,6 +56,8 @@ public class MessageService {
         message.setCategory(responseDto1.response());
 
         messageRepository.save(message);
+        log.info("classified Message : {} ", message.toString());
+
         handleCategoryResponse(message, responseDto1.response());
     }
 
@@ -101,8 +102,11 @@ public class MessageService {
             case "결제 거절":
                 processRejectCategory(message);
                 break;
-            case "결제 승인", "결제 취소":
-                processConfirmCancelCategory(message);
+            case "결제 승인":
+                processConfirmCategory(message);
+                break;
+            case "결제 취소":
+                processCancelCategory(message);
                 break;
             case "계좌 개설":
                 processOpenCategory(message);
@@ -118,7 +122,6 @@ public class MessageService {
                 break;
 
             default:
-                // 기본 처리 또는 로깅
                 log.info("No special processing for category: {}", category);
         }
     }
@@ -144,7 +147,7 @@ public class MessageService {
                 reject.setMessage(message);
                 rejectRepository.save(reject);
             } else {
-                log.error("Failed to get a successful response for category '결제 취소'");
+                log.error("Failed to get a successful response for category '결제 거절'");
             }
         } catch (JsonProcessingException e){
             log.error("Error serializing requestDto2 to JSON", e);
@@ -154,19 +157,49 @@ public class MessageService {
 
     }
 
-    private void processConfirmCancelCategory(Message message) {
+    private void processConfirmCategory(Message message) {
         try {
             RequestDto2 requestDto2 = new RequestDto2(message.getMsg());
             String requestBody = objectMapper.writeValueAsString(requestDto2);
 
-            ResponseEntity<CancelConfirmResponseDto> responseEntity = requestToApi(
+            ResponseEntity<ConfirmResponseDto> responseEntity = requestToApi(
+                    "/keywords/payment_approval",
+                    requestBody,
+                    HttpMethod.POST,
+                    ConfirmResponseDto.class);
+
+            if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
+                ConfirmResponseDto responseDto = responseEntity.getBody();
+                Confirm confirm = new Confirm();
+                confirm.setMethod(responseDto.METHOD());
+                confirm.setLocation(responseDto.LOCATION());
+                confirm.setTime(responseDto.TIME());
+                confirm.setCost(responseDto.COST());
+                confirm.setMessage(message); // Message 엔티티와 연관
+                confirmRepository.save(confirm);
+            } else {
+                log.error("Failed to get a successful response for category '결제 승인'");
+            }
+        } catch (JsonProcessingException e) {
+            log.error("Error serializing requestDto2 to JSON", e);
+        } catch (Exception e) {
+            log.error("An unexpected error occurred", e);
+        }
+    }
+
+    private void processCancelCategory(Message message) {
+        try {
+            RequestDto2 requestDto2 = new RequestDto2(message.getMsg());
+            String requestBody = objectMapper.writeValueAsString(requestDto2);
+
+            ResponseEntity<CancelResponseDto> responseEntity = requestToApi(
                     "/keywords/payment_cancellation",
                     requestBody,
                     HttpMethod.POST,
-                    CancelConfirmResponseDto.class);
+                    CancelResponseDto.class);
 
             if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
-                CancelConfirmResponseDto responseDto = responseEntity.getBody();
+                CancelResponseDto responseDto = responseEntity.getBody();
                 Cancel cancel = new Cancel();
                 cancel.setMethod(responseDto.METHOD());
                 cancel.setLocation(responseDto.LOCATION());
@@ -203,7 +236,7 @@ public class MessageService {
                 open.setMessage(message); // Message 엔티티와 연관
                 openRepository.save(open);
             } else {
-                log.error("Failed to get a successful response for category '결제 취소'");
+                log.error("Failed to get a successful response for category '계좌 개설'");
             }
         } catch (JsonProcessingException e) {
             log.error("Error serializing requestDto2 to JSON", e);
@@ -233,7 +266,7 @@ public class MessageService {
                 invoice.setMessage(message); // Message 엔티티와 연관
                 invoiceRepository.save(invoice);
             } else {
-                log.error("Failed to get a successful response for category '결제 취소'");
+                log.error("Failed to get a successful response for category '납부 예정'");
             }
         } catch (JsonProcessingException e) {
             log.error("Error serializing requestDto2 to JSON", e);
@@ -263,7 +296,7 @@ public class MessageService {
                 nonPayment.setMessage(message); // Message 엔티티와 연관
                 nonPaymentRepository.save(nonPayment);
             } else {
-                log.error("Failed to get a successful response for category '결제 취소'");
+                log.error("Failed to get a successful response for category '미납'");
             }
         } catch (JsonProcessingException e) {
             log.error("Error serializing requestDto2 to JSON", e);
@@ -273,6 +306,31 @@ public class MessageService {
     }
 
     private void processAutoCategory(Message message) {
+        try {
+            RequestDto2 requestDto2 = new RequestDto2(message.getMsg());
+            String requestBody = objectMapper.writeValueAsString(requestDto2);
+
+            ResponseEntity<AutoTransferResponseDto> responseEntity = requestToApi(
+                    "/keywords/automatic_transfer",
+                    requestBody,
+                    HttpMethod.POST,
+                    AutoTransferResponseDto.class);
+
+            if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
+                AutoTransferResponseDto responseDto = responseEntity.getBody();
+                AutoTransfer autoTransfer = new AutoTransfer();
+                autoTransfer.setBank(responseDto.BANK());
+                autoTransfer.setCompany(responseDto.COMPANY());
+                autoTransfer.setMessage(message); // Message 엔티티와 연관
+                autoTransferRepository.save(autoTransfer);
+            } else {
+                log.error("Failed to get a successful response for category '자동 이체'");
+            }
+        } catch (JsonProcessingException e) {
+            log.error("Error serializing requestDto2 to JSON", e);
+        } catch (Exception e) {
+            log.error("An unexpected error occurred", e);
+        }
 
     }
 }
