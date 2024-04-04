@@ -23,6 +23,8 @@ import org.springframework.web.client.RestTemplate;
 public class MessageService {
 
     private final MessageRepository messageRepository;
+    private final KeywordService keywordService;
+
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper; //객체 -> Json으로 변경
@@ -53,6 +55,7 @@ public class MessageService {
         message.setCategory(responseDto1.response());
 
         messageRepository.save(message);
+        keywordService.handleCategoryResponse(message, responseDto1.response());
     }
 
     // 외부 api로 요청 + 응답을 가져오는 메서드
@@ -89,5 +92,4 @@ public class MessageService {
             throw new RuntimeException(e);
         }
     }
-
 }
