@@ -83,7 +83,7 @@ public class MessageService {
             String body = objectMapper.writeValueAsString(requestDto1);
 
             ResponseEntity<ResponseDto1> responseEntity = requestToApi(
-                    "/predict/",
+                    "/class/",
                     body,
                     HttpMethod.POST,
                     ResponseDto1.class);
