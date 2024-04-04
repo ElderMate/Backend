@@ -18,10 +18,8 @@ public class Open {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String bank;
 
-    @Column(nullable = false)
     private String type;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -18,13 +18,10 @@ public class NonPayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String payee;
 
-    @Column(nullable = false)
     private String cost;
 
-    @Column(nullable = false)
     private String time;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -18,16 +18,12 @@ public class Confirm {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String method;
 
-    @Column(nullable = false)
     private String location;
 
-    @Column(nullable = false)
     private String time;
 
-    @Column(nullable = false)
     private String cost;
 
     @ManyToOne(fetch = FetchType.LAZY)
