@@ -47,8 +47,10 @@ public class Message {
         this.user = user;
     }
 
-    public void setIsProblem(boolean problem){
+    public void setIsProblem(){
         this.isProblem = true;
     }
+
+    public void setConfirm() {this.confirm = true;}
     
 }

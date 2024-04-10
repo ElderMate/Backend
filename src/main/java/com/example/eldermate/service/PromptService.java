@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,6 +32,16 @@ public class PromptService {
         List<Open> opens = openRepository.findAllByUser(user);
         List<Reject> rejects = repository.findAllByUser(user);
         // 이후 추가로 필요한 작업 수행
+
+        List<Long> messageIds = new ArrayList<>();
+        autoTransfers.forEach(autoTransfer -> messageIds.add(autoTransfer.getMessage().getId()));
+        cancels.forEach(cancel -> messageIds.add(cancel.getMessage().getId()));
+        confirms.forEach(confirm -> messageIds.add(confirm.getMessage().getId()));
+        invoices.forEach(invoice -> messageIds.add(invoice.getMessage().getId()));
+        nonPayments.forEach(nonPayment -> messageIds.add(nonPayment.getMessage().getId()));
+        opens.forEach(open -> messageIds.add(open.getMessage().getId()));
+        rejects.forEach(reject -> messageIds.add(reject.getMessage().getId()));
+
 
         StringBuilder promptBuilder = new StringBuilder();
 
@@ -67,11 +78,18 @@ public class PromptService {
     }
 
     @Transactional
-    public void checkProblem(ProblemRequestDto dto){
+    public void updateProblem(ProblemRequestDto dto){
         List<Long> messageIds = dto.messageIds();
 
         List<Message> messages = messageRepository.findAllByIds(messageIds);
 
-        messages.forEach(message -> message.setIsProblem(true));
+        messages.forEach(Message::setIsProblem);
+    }
+
+    @Transactional
+    public void updateConfime(List<Long> messageIds){
+        List<Message> messages = messageRepository.findAllByIds(messageIds);
+
+        messages.forEach(Message::setIsProblem);
     }
 }
