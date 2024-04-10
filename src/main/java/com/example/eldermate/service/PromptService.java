@@ -1,15 +1,18 @@
 package com.example.eldermate.service;
 
+import com.example.eldermate.dto.ProblemRequestDto;
 import com.example.eldermate.entity.*;
 import com.example.eldermate.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class PromptService {
+    private final MessageRepository messageRepository;
     private final AutoTransferRepository autoTransferRepository;
     private final CancelRepository cancelRepository;
     private final ConfirmRepository confirmRepository;
@@ -61,5 +64,14 @@ public class PromptService {
         }
 
         return promptBuilder.toString();
+    }
+
+    @Transactional
+    public void checkProblem(ProblemRequestDto dto){
+        List<Long> messageIds = dto.messageIds();
+
+        List<Message> messages = messageRepository.findAllByIds(messageIds);
+
+        messages.forEach(message -> message.setIsProblem(true));
     }
 }
