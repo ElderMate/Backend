@@ -1,13 +1,23 @@
 package com.example.eldermate.service;
 
 import com.example.eldermate.dto.ProblemRequestDto;
+import com.example.eldermate.dto.PromptResponseDto;
+import com.example.eldermate.dto.PromptStartResponseDto;
+import com.example.eldermate.dto.PromptStartRequestDto;
 import com.example.eldermate.entity.*;
 import com.example.eldermate.repository.*;
+import com.example.eldermate.repository.queryDto.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -21,60 +31,67 @@ public class PromptService {
     private final NonPaymentRepository nonPaymentRepository;
     private final OpenRepository openRepository;
     private final RejectRepository repository;
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+
+    private static final String API_URL = "http://127.0.0.1:8000";
 
 
-    public String getFirstPrompt(UserEntity user){
-        List<AutoTransfer> autoTransfers = autoTransferRepository.findAllByUser(user);
-        List<Cancel> cancels = cancelRepository.findAllByUser(user);
-        List<Confirm> confirms = confirmRepository.findAllByUser(user);
-        List<Invoice> invoices = invoiceRepository.findAllByUser(user);
-        List<NonPayment> nonPayments = nonPaymentRepository.findAllByUser(user);
-        List<Open> opens = openRepository.findAllByUser(user);
-        List<Reject> rejects = repository.findAllByUser(user);
-        // 이후 추가로 필요한 작업 수행
+    public PromptStartResponseDto startPrompt(UserEntity user){
+        String fileName = createFileName(user.getName());
+        List<AutoTransferQueryDto> autoTransfers = autoTransferRepository.findAllByUser(user);
+        List<CancelQueryDto> cancels = cancelRepository.findAllByUser(user);
+        List<ConfirmQueryDto> confirms = confirmRepository.findAllByUser(user);
+        List<InvoiceQueryDto> invoices = invoiceRepository.findAllByUser(user);
+        List<NonPaymentQueryDto> nonPayments = nonPaymentRepository.findAllByUser(user);
+        List<OpenQueryDto> opens = openRepository.findAllByUser(user);
+        List<RejectQueryDto> rejects = repository.findAllByUser(user);
 
-        List<Long> messageIds = new ArrayList<>();
-        autoTransfers.forEach(autoTransfer -> messageIds.add(autoTransfer.getMessage().getId()));
-        cancels.forEach(cancel -> messageIds.add(cancel.getMessage().getId()));
-        confirms.forEach(confirm -> messageIds.add(confirm.getMessage().getId()));
-        invoices.forEach(invoice -> messageIds.add(invoice.getMessage().getId()));
-        nonPayments.forEach(nonPayment -> messageIds.add(nonPayment.getMessage().getId()));
-        opens.forEach(open -> messageIds.add(open.getMessage().getId()));
-        rejects.forEach(reject -> messageIds.add(reject.getMessage().getId()));
+        PromptStartRequestDto requestDto = new PromptStartRequestDto(
+                fileName,
+                autoTransfers,
+                cancels,
+                confirms,
+                invoices,
+                nonPayments,
+                opens,
+                rejects
+        );
 
+        String body = makeRequestBody(requestDto);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-        StringBuilder promptBuilder = new StringBuilder();
+        try {
+            HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
-        if(!confirms.isEmpty()) {
-            promptBuilder.append("결제 승인 문자들:").append("\n");
-            confirms.forEach(cf -> promptBuilder.append(cf.toString()).append("\n"));
-        }
-        if(!cancels.isEmpty()) {
-            promptBuilder.append("결제 취소 문자들:").append("\n");
-            cancels.forEach(c -> promptBuilder.append(c.toString()).append("\n"));
-        }
-        if(!confirms.isEmpty()) {
-            promptBuilder.append("결제 거절 문자들:").append("\n");
-            rejects.forEach(rj -> promptBuilder.append(rj.toString()).append("\n"));
-        }
-        if(!invoices.isEmpty()) {
-            promptBuilder.append("납부 예정 문자들:").append("\n");
-            invoices.forEach(iv -> promptBuilder.append(iv.toString()).append("\n"));
-        }
-        if(!nonPayments.isEmpty()) {
-            promptBuilder.append("미납 문자들:").append("\n");
-            nonPayments.forEach(np -> promptBuilder.append(np.toString()).append("\n"));
-        }
-        if(!autoTransfers.isEmpty()) {
-            promptBuilder.append("자동이체 등록 문자들:").append("\n");
-            autoTransfers.forEach(at -> promptBuilder.append(at.toString()).append("\n"));
-        }
-        if(!opens.isEmpty()) {
-            promptBuilder.append("계좌 개설 문자들:").append("\n");
-            opens.forEach(op -> promptBuilder.append(op.toString()).append("\n"));
+            ResponseEntity<PromptResponseDto> response = restTemplate.exchange(
+                    API_URL + "/reports/start",
+                    HttpMethod.POST,
+                    entity,
+                    PromptResponseDto.class
+            );
+
+            return PromptStartResponseDto.from(response.getBody(), fileName);
+
+        } catch (Exception e) {
+            throw new RuntimeException("외부API 요청 실패");
         }
 
-        return promptBuilder.toString();
+    }
+
+    private String createFileName(String name){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+        String dateInfo = dateFormat.format(new Date());
+        return name + "_" + dateInfo;
+    }
+
+    private String makeRequestBody(PromptStartRequestDto requestDto){
+        try {
+            return objectMapper.writeValueAsString(requestDto);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("requset body 생성 실패");
+        }
     }
 
     @Transactional
