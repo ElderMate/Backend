@@ -33,6 +33,9 @@ public class Message {
     private Boolean isProblem;
 
     @Column
+    private String problemReason;
+
+    @Column
     private String category;
 
     @ManyToOne(fetch = FetchType.LAZY)

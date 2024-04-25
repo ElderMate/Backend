@@ -1,9 +1,6 @@
 package com.example.eldermate.service;
 
-import com.example.eldermate.dto.ProblemRequestDto;
-import com.example.eldermate.dto.PromptResponseDto;
-import com.example.eldermate.dto.PromptStartResponseDto;
-import com.example.eldermate.dto.PromptStartRequestDto;
+import com.example.eldermate.dto.*;
 import com.example.eldermate.entity.*;
 import com.example.eldermate.repository.*;
 import com.example.eldermate.repository.queryDto.*;
@@ -12,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 
@@ -80,6 +76,43 @@ public class PromptService {
 
     }
 
+    public void endPrompt(UserEntity user, PromptEndRequestDto requestDto){
+        try {
+            String body =  objectMapper.writeValueAsString(requestDto);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<String> entity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<PromptEndResponseDto> response = restTemplate.exchange(
+                    API_URL + "/reports/end",
+                    HttpMethod.POST,
+                    entity,
+                    PromptEndResponseDto.class
+            );
+
+            List<Long> messageIds = response.getBody().messageIds();
+            List<String> reasons = response.getBody().reasons();
+
+            List<Message> messages = messageRepository.findAllByIds(messageIds);
+
+            // messages 리스트를 순회하면서 각 Message에 문제 상태와 이유를 설정
+            for (int i = 0; i < messages.size(); i++) {
+                Message message = messages.get(i);
+                message.setIsProblem(); // 문제 상태를 true로 설정
+                // 동일한 인덱스를 가진 reasons 목록에서 문제의 이유를 가져와 설정
+                if (i < reasons.size()) { // reasons 목록의 크기를 넘지 않도록 체크
+                    message.setProblemReason(reasons.get(i));
+                }
+            }
+
+
+        } catch (Exception e) {
+            throw new RuntimeException("외부API 요청 실패");
+        }
+    }
+
     private String createFileName(String name){
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
         String dateInfo = dateFormat.format(new Date());
@@ -94,19 +127,4 @@ public class PromptService {
         }
     }
 
-    @Transactional
-    public void updateProblem(ProblemRequestDto dto){
-        List<Long> messageIds = dto.messageIds();
-
-        List<Message> messages = messageRepository.findAllByIds(messageIds);
-
-        messages.forEach(Message::setIsProblem);
-    }
-
-    @Transactional
-    public void updateConfime(List<Long> messageIds){
-        List<Message> messages = messageRepository.findAllByIds(messageIds);
-
-        messages.forEach(Message::setIsProblem);
-    }
 }
