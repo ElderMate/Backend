@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -34,7 +35,10 @@ public class PromptService {
 
 
     public PromptStartResponseDto startPrompt(UserEntity user){
+        //1. 파일 이름 생성
         String fileName = createFileName(user.getName());
+
+        //2. DB에서 confirm == not인 문자들 가져오기
         List<AutoTransferQueryDto> autoTransfers = autoTransferRepository.findAllByUser(user);
         List<CancelQueryDto> cancels = cancelRepository.findAllByUser(user);
         List<ConfirmQueryDto> confirms = confirmRepository.findAllByUser(user);
@@ -43,6 +47,24 @@ public class PromptService {
         List<OpenQueryDto> opens = openRepository.findAllByUser(user);
         List<RejectQueryDto> rejects = repository.findAllByUser(user);
 
+        //3. 가져온 문자들 confirm == true로 설정하기
+        // messageId를 모으기 위한 리스트 생성
+        List<Long> messageIds = new ArrayList<>();
+
+        // 각 리스트에서 messageId를 추출하여 messageIds에 추가
+        autoTransfers.forEach(dto -> messageIds.add(dto.messageId()));
+        cancels.forEach(dto -> messageIds.add(dto.messageId()));
+        confirms.forEach(dto -> messageIds.add(dto.messageId()));
+        invoices.forEach(dto -> messageIds.add(dto.messageId()));
+        nonPayments.forEach(dto -> messageIds.add(dto.messageId()));
+        opens.forEach(dto -> messageIds.add(dto.messageId()));
+        rejects.forEach(dto -> messageIds.add(dto.messageId()));
+
+        List<Message> messages = messageRepository.findAllByIds(messageIds);
+
+        messages.forEach(Message::setConfirm);
+
+        //4. 해당 문자 정보들 FastAPI 저달
         PromptStartRequestDto requestDto = new PromptStartRequestDto(
                 fileName,
                 autoTransfers,
