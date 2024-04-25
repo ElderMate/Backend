@@ -30,6 +30,12 @@ public class Message {
     private Boolean confirm;
 
     @Column
+    private Boolean isProblem;
+
+    @Column
+    private String problemReason;
+
+    @Column
     private String category;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,5 +49,11 @@ public class Message {
         this.time = time;
         this.user = user;
     }
+
+    public void setIsProblem(){
+        this.isProblem = true;
+    }
+
+    public void setConfirm() {this.confirm = true;}
     
 }
