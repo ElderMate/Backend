@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/reports/daily")
 public class PromptController {
-    private PromptService promptService;
+    private final PromptService promptService;
 
     @PostMapping("/start")
     @Operation(summary = "데일리 리포트 시작 api", description = "JWT 토큰을 통해 데일리 리포트 파일을 생성후 시작한다.")
