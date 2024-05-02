@@ -33,10 +33,9 @@ public class PromptService {
 
     private static final String API_URL = "http://127.0.0.1:8000";
 
-
     public PromptStartResponseDto startPrompt(UserEntity user){
         //1. 파일 이름 생성
-        String fileName = createFileName(user.getName());
+        String fileName = createFileName(user.getUsername());
 
         //2. DB에서 confirm == not인 문자들 가져오기
         List<AutoTransferQueryDto> autoTransfers = autoTransferRepository.findAllByUser(user);
