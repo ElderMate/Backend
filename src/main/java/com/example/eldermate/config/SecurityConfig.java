@@ -56,7 +56,7 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "/join").permitAll() //해당 경로들은 모든 사람들이 접근 가능
+                        .requestMatchers("/login", "/", "/join", "/test").permitAll() //해당 경로들은 모든 사람들이 접근 가능
                         .requestMatchers("/v3/**", "swagger-ui/**").permitAll()
                         .anyRequest().authenticated()); //그 외 접근은 로그인한 사용자만 접근 가능
 
