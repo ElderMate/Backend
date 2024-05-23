@@ -1,7 +1,7 @@
 INSERT INTO user(id, birthdate, gender, name, password, phoneNumber) VALUES ('1','1960-05-02','0','홍길동','$2a$10$V9LeNOSrAeJq1xUcfX.j3utpTLw3FWNof53yh3/S9ktClDNldKFBu','01012341234');
 
 INSERT INTO Message(id, confirm, time, userId, category, msg, pNum) VALUES ('1', 0, '2024-04-12T12:23:30.327959','1','결제 승인','[Web발신]우리(1169)승인 홍*동님 4,900원 일시불 04/12 12:23 맥도날드판교테크노 누적342,500원','1588-9955');
-INSERT INTO Message(id, confirm, time, userId, category, msg, pNum) VALUES ('2', 0, '2024-04-12T21:19:28.124235','1','결제 승인','[Web발신] [KB국민카드] 3*5* 해외승인 홍*동님 1,198.00(USD) 04/12 21:19 미국 APPLE.CO','1588-1688');
+INSERT INTO Message(id, confirm, time, userId, category, msg, pNum) VALUES ('2', 0, '2024-04-12T21:19:28.124235','1','결제 승인','[Web발신] [신한체크승인] 홍*동(4384) 04/12 19:28 (금액)1,500원 태평할인마트','1544-7200');
 
 INSERT INTO Message(id, confirm, time, userId, category, msg, pNum) VALUES ('3', 0, '2024-04-12T21:24:14.478235','1','결제 취소','[Web발신] [KB국민카드] 3*5* 홍*동님 이마트천호점 이용건 04월12일 취소완료(-30,000원)','1588-1688');
 
@@ -21,7 +21,7 @@ INSERT INTO Message(id, confirm, time, userId, category, msg, pNum) VALUES ('12'
 INSERT INTO Message(id, confirm, time, userId, category, msg, pNum) VALUES ('13', 0, '2024-04-12T17:29:15.221637','1','자동 이체','[Web발신] [우리은행] 홍*동 고객님께서 우아한형제들에서 신청하신 오픈뱅킹 출금이체(자동이체)건이 아래와 같이 등록되었습니다. * 출금은행 : 우리은행 * 계좌번호 : 100235******* * 예금주명 :  홍*동 * 신청기관 : 우아한형제들 ','1588-5000');
 
 INSERT INTO Confirm(id, msgId, cost, location, method, time) VALUES ('1','1','4,900','맥도날드판교테크노','우리카드','2024-04-12T12:23:30.327959');
-INSERT INTO Confirm(id, msgId, cost, location, method, time) VALUES ('2','2','1,198.00(USD)','미국 APPLE.CO','KB국민카드','2024-04-12T21:19:28.124235');
+INSERT INTO Confirm(id, msgId, cost, location, method, time) VALUES ('2','2','1,500','태평할인마트','신한체크카드','2024-04-12T21:19:28.124235');
 
 INSERT INTO Cancel(id, msgId, cost, location, method, time) VALUES ('1','3','30,000','이마트천호점','KB국민카드','2024-04-12T21:24:14.478235');
 
