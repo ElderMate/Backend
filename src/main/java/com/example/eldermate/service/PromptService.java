@@ -7,10 +7,8 @@ import com.example.eldermate.repository.autoTransfer.AutoTransferRepository;
 import com.example.eldermate.repository.cancel.CancelRepository;
 import com.example.eldermate.repository.confirm.ConfirmRepository;
 import com.example.eldermate.repository.invoice.InvoiceRepository;
-import com.example.eldermate.repository.nonPayment.NonPaymentRepository;
 import com.example.eldermate.repository.open.OpenRepository;
 import com.example.eldermate.repository.queryDto.*;
-import com.example.eldermate.repository.reject.RejectRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +30,7 @@ public class PromptService {
     private final CancelRepository cancelRepository;
     private final ConfirmRepository confirmRepository;
     private final InvoiceRepository invoiceRepository;
-    private final NonPaymentRepository nonPaymentRepository;
     private final OpenRepository openRepository;
-    private final RejectRepository repository;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
@@ -49,9 +45,7 @@ public class PromptService {
         List<CancelQueryDto> cancels = cancelRepository.findAllByUser(user);
         List<ConfirmQueryDto> confirms = confirmRepository.findAllByUser(user);
         List<InvoiceQueryDto> invoices = invoiceRepository.findAllByUser(user);
-        List<NonPaymentQueryDto> nonPayments = nonPaymentRepository.findAllByUser(user);
         List<OpenQueryDto> opens = openRepository.findAllByUser(user);
-        List<RejectQueryDto> rejects = repository.findAllByUser(user);
 
         //3. 가져온 문자들 confirm == true로 설정하기
         // messageId를 모으기 위한 리스트 생성
@@ -62,9 +56,7 @@ public class PromptService {
         cancels.forEach(dto -> messageIds.add(dto.messageId()));
         confirms.forEach(dto -> messageIds.add(dto.messageId()));
         invoices.forEach(dto -> messageIds.add(dto.messageId()));
-        nonPayments.forEach(dto -> messageIds.add(dto.messageId()));
         opens.forEach(dto -> messageIds.add(dto.messageId()));
-        rejects.forEach(dto -> messageIds.add(dto.messageId()));
 
         List<Message> messages = messageRepository.findAllByIds(messageIds);
 
@@ -77,9 +69,7 @@ public class PromptService {
                 cancels,
                 confirms,
                 invoices,
-                nonPayments,
-                opens,
-                rejects
+                opens
         );
 
         String body = makeRequestBody(requestDto);

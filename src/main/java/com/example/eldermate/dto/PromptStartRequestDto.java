@@ -10,8 +10,6 @@ public record PromptStartRequestDto(
         List<CancelQueryDto> cancels,
         List<ConfirmQueryDto> confirms,
         List<InvoiceQueryDto> invoices,
-        List<NonPaymentQueryDto> nonPayments,
-        List<OpenQueryDto> opens,
-        List<RejectQueryDto> rejects
+        List<OpenQueryDto> opens
 ) {
 }

@@ -7,9 +7,7 @@ import com.example.eldermate.repository.autoTransfer.AutoTransferRepository;
 import com.example.eldermate.repository.cancel.CancelRepository;
 import com.example.eldermate.repository.confirm.ConfirmRepository;
 import com.example.eldermate.repository.invoice.InvoiceRepository;
-import com.example.eldermate.repository.nonPayment.NonPaymentRepository;
 import com.example.eldermate.repository.open.OpenRepository;
-import com.example.eldermate.repository.reject.RejectRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +26,10 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
 
-    private final RejectRepository rejectRepository;
     private final ConfirmRepository confirmRepository;
     private final CancelRepository cancelRepository;
     private final OpenRepository openRepository;
     private final InvoiceRepository invoiceRepository;
-    private final NonPaymentRepository nonPaymentRepository;
     private final AutoTransferRepository autoTransferRepository;
 
     private final RestTemplate restTemplate;
@@ -106,9 +102,6 @@ public class MessageService {
     public void handleCategoryResponse(Message message, String category) {
         switch (category) {
 
-            case "결제 거절":
-                processRejectCategory(message);
-                break;
             case "결제 승인":
                 processConfirmCategory(message);
                 break;
@@ -121,9 +114,6 @@ public class MessageService {
             case "납부 예정":
                 processInvoiceCategory(message);
                 break;
-            case "미납":
-                processNonPayCategory(message);
-                break;
             case "자동 이체":
                 processAutoCategory(message);
                 break;
@@ -133,36 +123,6 @@ public class MessageService {
         }
     }
 
-    private void processRejectCategory(Message message) {
-        try {
-            RequestDto2 requestDto2 = new RequestDto2(message.getMsg());
-            String requestBody = objectMapper.writeValueAsString(requestDto2);
-
-            ResponseEntity<RejectResponseDto> responseEntity = requestToApi(
-                    "/keywords/payment_denial",
-                    requestBody,
-                    HttpMethod.POST,
-                    RejectResponseDto.class);
-            if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
-                RejectResponseDto responseDto = responseEntity.getBody();
-                Reject reject = new Reject();
-                reject.setMethod(responseDto.METHOD());
-                reject.setLocation(responseDto.LOCATION());
-                reject.setTime(responseDto.TIME());
-                reject.setCost(responseDto.COST());
-                reject.setRejectReason(responseDto.RejectionReason());
-                reject.setMessage(message);
-                rejectRepository.save(reject);
-            } else {
-                log.error("Failed to get a successful response for category '결제 거절'");
-            }
-        } catch (JsonProcessingException e){
-            log.error("Error serializing requestDto2 to JSON", e);
-        } catch (Exception e) {
-            log.error("An unexpected error occurred", e);
-        }
-
-    }
 
     private void processConfirmCategory(Message message) {
         try {
@@ -281,35 +241,6 @@ public class MessageService {
             log.error("An unexpected error occurred", e);
         }
 
-    }
-
-    private void processNonPayCategory(Message message) {
-        try {
-            RequestDto2 requestDto2 = new RequestDto2(message.getMsg());
-            String requestBody = objectMapper.writeValueAsString(requestDto2);
-
-            ResponseEntity<NonPaymentResponseDto> responseEntity = requestToApi(
-                    "/keywords/non_payment",
-                    requestBody,
-                    HttpMethod.POST,
-                    NonPaymentResponseDto.class);
-
-            if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
-                NonPaymentResponseDto responseDto = responseEntity.getBody();
-                NonPayment nonPayment = new NonPayment();
-                nonPayment.setPayee(responseDto.PAYEE());
-                nonPayment.setCost(responseDto.COST());
-                nonPayment.setTime(responseDto.TIME());
-                nonPayment.setMessage(message); // Message 엔티티와 연관
-                nonPaymentRepository.save(nonPayment);
-            } else {
-                log.error("Failed to get a successful response for category '미납'");
-            }
-        } catch (JsonProcessingException e) {
-            log.error("Error serializing requestDto2 to JSON", e);
-        } catch (Exception e) {
-            log.error("An unexpected error occurred", e);
-        }
     }
 
     private void processAutoCategory(Message message) {
