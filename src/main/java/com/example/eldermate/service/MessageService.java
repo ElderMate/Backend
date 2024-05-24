@@ -19,6 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -35,6 +38,16 @@ public class MessageService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper; //객체 -> Json으로 변경
     private final String HOST = "http://127.0.0.1:8000";
+
+    public List<MessageResponseDto> getAllMessage(CustomUserDetails userDetails){
+        UserEntity user = userDetails.getUserEntity();
+
+        List<Message> messages = messageRepository.findAllByUser(user);
+
+        return messages.stream()
+                .map(MessageResponseDto::from)  // MessageResponseDto.from 메소드를 사용하여 변환
+                .collect(Collectors.toList());  // 결과를 List로 수집
+    }
 
     public void saveMessage(MessageDTO messageDTO, CustomUserDetails userDetails) {
         UserEntity user = userDetails.getUserEntity();

@@ -1,15 +1,14 @@
 package com.example.eldermate.controller;
 
-import com.example.eldermate.dto.CustomUserDetails;
-import com.example.eldermate.dto.MessageDTO;
-import com.example.eldermate.dto.RequestDto1;
-import com.example.eldermate.dto.ResponseDto1;
+import com.example.eldermate.dto.*;
 import com.example.eldermate.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @ResponseBody
@@ -24,5 +23,14 @@ public class MessageController {
     public ResponseEntity<Void> saveMessage(@RequestBody MessageDTO messageDTO, @AuthenticationPrincipal CustomUserDetails userDetails){
         messageService.saveMessage(messageDTO, userDetails);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping
+    @Operation(summary = "메세지 전체 조회 api", description = "DB에 저장된 사용자 메세지 전체 조회를 진행한다.")
+    public ResponseEntity<List<MessageResponseDto>> getAllMessage(@AuthenticationPrincipal CustomUserDetails userDetails){
+
+        List<MessageResponseDto> responseDtos = messageService.getAllMessage(userDetails);
+
+        return  ResponseEntity.ok(responseDtos);
     }
 }
