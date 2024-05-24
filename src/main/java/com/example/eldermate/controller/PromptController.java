@@ -25,13 +25,13 @@ public class PromptController {
         return ResponseEntity.ok(responseDto);
     }
 
-    @DeleteMapping("/end")
+    @DeleteMapping("/end/{fileName}")
     @Operation(summary = "데일리 리포트 종료 api", description = "JWT 토큰과 파일 이름을 통해 데일리 리포트 종료 처리를 진행한다.")
     public ResponseEntity<Void> endPrompt(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody PromptEndRequestDto requestDto){
+            @PathVariable String fileName){
 
-        promptService.endPrompt(userDetails.getUserEntity(), requestDto);
+        promptService.endPrompt(userDetails.getUserEntity(), fileName);
 
         return ResponseEntity.ok().build();
     }

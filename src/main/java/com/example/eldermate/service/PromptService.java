@@ -94,9 +94,9 @@ public class PromptService {
 
     }
 
-    public void endPrompt(UserEntity user, PromptEndRequestDto requestDto){
+    public void endPrompt(UserEntity user, String fileName){
         try {
-            String body =  objectMapper.writeValueAsString(requestDto);
+            String body =  objectMapper.writeValueAsString(new PromptEndRequestDto(fileName));
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
