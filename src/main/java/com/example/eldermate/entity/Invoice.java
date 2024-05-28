@@ -12,12 +12,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 // 납부 예정
-public class Invoice {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class Invoice extends  Message{
     private String payee;
 
     private String cost;
@@ -25,9 +20,4 @@ public class Invoice {
     private String time;
 
     private String paymentReason;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "msgId", nullable = false)
-    private Message message;
-
 }

@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @ToString
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn
 public class Message {
 
     @Id
