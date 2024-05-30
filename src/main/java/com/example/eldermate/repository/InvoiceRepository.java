@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface InvoiceRepository extends JpaRepository<Invoice, Long>{
     @Query("SELECT i FROM Invoice i WHERE i.confirm = false AND i.user = :user")
-    List<Invoice> findNotConfirmAllByUser(UserEntity User);
+    List<Invoice> findNotConfirmAllByUser(UserEntity user);
 }
