@@ -5,25 +5,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Entity
-@Setter
 @Getter
 @NoArgsConstructor
-@ToString
+@SuperBuilder
 // 계좌 개설
-public class Open {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Open extends Message {
 
     private String bank;
 
     private String type;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "msgId", nullable = false)
-    private Message message;
 
 }

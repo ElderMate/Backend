@@ -1,23 +1,22 @@
 package com.example.eldermate.service;
 
 import com.example.eldermate.dto.*;
+import com.example.eldermate.dto.message.*;
 import com.example.eldermate.entity.*;
 import com.example.eldermate.repository.*;
-import com.example.eldermate.repository.autoTransfer.AutoTransferRepository;
-import com.example.eldermate.repository.cancel.CancelRepository;
-import com.example.eldermate.repository.confirm.ConfirmRepository;
-import com.example.eldermate.repository.invoice.InvoiceRepository;
-import com.example.eldermate.repository.open.OpenRepository;
+import com.example.eldermate.repository.AutoTransferRepository;
+import com.example.eldermate.repository.CancelRepository;
+import com.example.eldermate.repository.ConfirmRepository;
+import com.example.eldermate.repository.InvoiceRepository;
+import com.example.eldermate.repository.OpenRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,7 +36,9 @@ public class MessageService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper; //객체 -> Json으로 변경
-    private final String HOST = "http://127.0.0.1:8000";
+
+    @Value("${service.host}")
+    private String HOST;
 
     public List<MessageResponseDto> getAllMessage(CustomUserDetails userDetails){
         UserEntity user = userDetails.getUserEntity();
@@ -57,53 +58,30 @@ public class MessageService {
         // DTO에서 받은 time 문자열을 LocalDateTime으로 변환
         //LocalDateTime date = LocalDateTime.parse(messageDTO.getTime(), DateTimeFormatter.ISO_DATE);
 
-        Message message = Message.builder()
-                .pNum(messageDTO.getPNum())
-                .msg(messageDTO.getMsg())
-                .time(messageDTO.getTime())
-                .user(user)
-                .build();
-
         // 외부 API로부터 category 예측 받기
-        RequestDto1 requestDto1 = new RequestDto1(message.getMsg()); // msg를 기반으로 DTO 생성
-        ResponseDto1 responseDto1 = predictCategory(requestDto1); // category 예측 받기
+        CategoryRequestDto categoryRequestDto = new CategoryRequestDto(messageDTO.getMsg()); // msg를 기반으로 DTO 생성
+        CategoryResponseDto categoryResponseDto = predictCategory(categoryRequestDto); // category 예측 받기
 
-        // 받은 category 값을 메시지에 설정
-        message.setCategory(responseDto1.response());
+        log.info("classified Message : {} ", categoryResponseDto.response());
 
-        messageRepository.save(message);
-        log.info("classified Message : {} ", message.toString());
-
-        handleCategoryResponse(message, responseDto1.response());
-    }
-
-    // 외부 api로 요청 + 응답을 가져오는 메서드
-    private <T> ResponseEntity<T> requestToApi(String endPoint, String body, HttpMethod httpMethod, Class<T> reponseType){
-        // http requset 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Content-Type", "application/json");
-
-        // httpEntity 생성 = header + requestbody
-        HttpEntity<String> httpEntity = new HttpEntity<>(body, headers);
-
-        // request url 설정
-        String url = HOST + endPoint;
-
-        // http request 전송
-        return restTemplate.exchange(url, httpMethod, httpEntity, reponseType);
+        handleCategoryResponse(messageDTO, categoryResponseDto.response(), user);
     }
 
     // 서비스 클래스 내부의 testMethod를 수정
-    public ResponseDto1 predictCategory(RequestDto1 requestDto1) {
+    public CategoryResponseDto predictCategory(CategoryRequestDto categoryRequestDto) {
         try {
-            // 인자로 받은 requestDto1을 사용하여 body 생성
-            String body = objectMapper.writeValueAsString(requestDto1);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            ResponseEntity<ResponseDto1> responseEntity = requestToApi(
-                    "/class/",
-                    body,
+            String body = objectMapper.writeValueAsString(categoryRequestDto);
+
+            HttpEntity<String> entity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<CategoryResponseDto> responseEntity = restTemplate.exchange(
+                    HOST + "/class/",
                     HttpMethod.POST,
-                    ResponseDto1.class);
+                    entity,
+                    CategoryResponseDto.class);
 
             return responseEntity.getBody();
 
@@ -112,23 +90,23 @@ public class MessageService {
         }
     }
 
-    public void handleCategoryResponse(Message message, String category) {
+    public void handleCategoryResponse(MessageDTO messageDTO, String category, UserEntity user) {
         switch (category) {
 
             case "결제 승인":
-                processConfirmCategory(message);
+                processConfirmCategory(messageDTO, user);
                 break;
             case "결제 취소":
-                processCancelCategory(message);
+                processCancelCategory(messageDTO, user);
                 break;
             case "계좌 개설":
-                processOpenCategory(message);
+                processOpenCategory(messageDTO, user);
                 break;
             case "납부 예정":
-                processInvoiceCategory(message);
+                processInvoiceCategory(messageDTO, user);
                 break;
             case "자동 이체":
-                processAutoCategory(message);
+                processAutoCategory(messageDTO, user);
                 break;
 
             default:
@@ -137,25 +115,37 @@ public class MessageService {
     }
 
 
-    private void processConfirmCategory(Message message) {
+    private void processConfirmCategory(MessageDTO messageDTO,  UserEntity user) {
         try {
-            RequestDto2 requestDto2 = new RequestDto2(message.getMsg());
-            String requestBody = objectMapper.writeValueAsString(requestDto2);
+            NerRequestDto nerRequestDto = new NerRequestDto(messageDTO.getMsg());
 
-            ResponseEntity<ConfirmResponseDto> responseEntity = requestToApi(
-                    "/keywords/payment_approval",
-                    requestBody,
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String requestBody = objectMapper.writeValueAsString(nerRequestDto);
+
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<ConfirmResponseDto> responseEntity = restTemplate.exchange(
+                    HOST + "/keywords/payment_approval",
                     HttpMethod.POST,
+                    entity,
                     ConfirmResponseDto.class);
 
             if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
                 ConfirmResponseDto responseDto = responseEntity.getBody();
-                Confirm confirm = new Confirm();
-                confirm.setMethod(responseDto.METHOD());
-                confirm.setLocation(responseDto.LOCATION());
-                confirm.setTime(responseDto.TIME());
-                confirm.setCost(responseDto.COST());
-                confirm.setMessage(message); // Message 엔티티와 연관
+
+                Confirm confirm = Confirm.builder()
+                        .pNum(messageDTO.getPNum())
+                        .msg(messageDTO.getMsg())
+                        .receiveTime(messageDTO.getTime())
+                        .user(user)
+                        .method(responseDto.METHOD())
+                        .location(responseDto.LOCATION())
+                        .confirmTime(responseDto.TIME())
+                        .cost(responseDto.COST())
+                        .build();
+
                 confirmRepository.save(confirm);
             } else {
                 log.error("Failed to get a successful response for category '결제 승인'");
@@ -167,25 +157,37 @@ public class MessageService {
         }
     }
 
-    private void processCancelCategory(Message message) {
+    private void processCancelCategory(MessageDTO messageDTO,  UserEntity user) {
         try {
-            RequestDto2 requestDto2 = new RequestDto2(message.getMsg());
-            String requestBody = objectMapper.writeValueAsString(requestDto2);
+            NerRequestDto nerRequestDto = new NerRequestDto(messageDTO.getMsg());
 
-            ResponseEntity<CancelResponseDto> responseEntity = requestToApi(
-                    "/keywords/payment_cancellation",
-                    requestBody,
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String requestBody = objectMapper.writeValueAsString(nerRequestDto);
+
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<CancelResponseDto> responseEntity = restTemplate.exchange(
+                    HOST + "/keywords/payment_cancellation",
                     HttpMethod.POST,
+                    entity,
                     CancelResponseDto.class);
 
             if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
                 CancelResponseDto responseDto = responseEntity.getBody();
-                Cancel cancel = new Cancel();
-                cancel.setMethod(responseDto.METHOD());
-                cancel.setLocation(responseDto.LOCATION());
-                cancel.setTime(responseDto.TIME());
-                cancel.setCost(responseDto.COST());
-                cancel.setMessage(message); // Message 엔티티와 연관
+
+                Cancel cancel = Cancel.builder()
+                        .pNum(messageDTO.getPNum())
+                        .msg(messageDTO.getMsg())
+                        .receiveTime(messageDTO.getTime())
+                        .user(user)
+                        .method(responseDto.METHOD())
+                        .location(responseDto.LOCATION())
+                        .cancelTime(responseDto.TIME())
+                        .cost(responseDto.COST())
+                        .build();
+
                 cancelRepository.save(cancel);
             } else {
                 log.error("Failed to get a successful response for category '결제 취소'");
@@ -197,23 +199,34 @@ public class MessageService {
         }
     }
 
-    private void processOpenCategory(Message message) {
+    private void processOpenCategory(MessageDTO messageDTO,  UserEntity user) {
         try {
-            RequestDto2 requestDto2 = new RequestDto2(message.getMsg());
-            String requestBody = objectMapper.writeValueAsString(requestDto2);
+            NerRequestDto nerRequestDto = new NerRequestDto(messageDTO.getMsg());
 
-            ResponseEntity<OpenResponseDto> responseEntity = requestToApi(
-                    "/keywords/account_openning",
-                    requestBody,
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String requestBody = objectMapper.writeValueAsString(nerRequestDto);
+
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<OpenResponseDto> responseEntity = restTemplate.exchange(
+                    HOST +  "/keywords/account_openning",
                     HttpMethod.POST,
+                    entity,
                     OpenResponseDto.class);
 
             if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
                 OpenResponseDto responseDto = responseEntity.getBody();
-                Open open = new Open();
-                open.setBank(responseDto.BANK());
-                open.setType(responseDto.TYPE());
-                open.setMessage(message); // Message 엔티티와 연관
+                Open open = Open.builder()
+                        .pNum(messageDTO.getPNum())
+                        .msg(messageDTO.getMsg())
+                        .receiveTime(messageDTO.getTime())
+                        .user(user)
+                        .bank(responseDto.BANK())
+                        .type(responseDto.TYPE())
+                        .build();
+
                 openRepository.save(open);
             } else {
                 log.error("Failed to get a successful response for category '계좌 개설'");
@@ -225,25 +238,36 @@ public class MessageService {
         }
     }
 
-    private void processInvoiceCategory(Message message) {
+    private void processInvoiceCategory(MessageDTO messageDTO,  UserEntity user) {
         try {
-            RequestDto2 requestDto2 = new RequestDto2(message.getMsg());
-            String requestBody = objectMapper.writeValueAsString(requestDto2);
+            NerRequestDto nerRequestDto = new NerRequestDto(messageDTO.getMsg());
 
-            ResponseEntity<InvoiceResponseDto> responseEntity = requestToApi(
-                    "/keywords/payment_scheduled",
-                    requestBody,
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String requestBody = objectMapper.writeValueAsString(nerRequestDto);
+
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<InvoiceResponseDto> responseEntity = restTemplate.exchange(
+                    HOST + "/keywords/payment_scheduled",
                     HttpMethod.POST,
+                    entity,
                     InvoiceResponseDto.class);
 
             if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
                 InvoiceResponseDto responseDto = responseEntity.getBody();
-                Invoice invoice = new Invoice();
-                invoice.setPayee(responseDto.PAYEE());
-                invoice.setCost(responseDto.COST());
-                invoice.setTime(responseDto.TIME());
-                invoice.setPaymentReason(responseDto.PAYMENTREASON());
-                invoice.setMessage(message); // Message 엔티티와 연관
+                Invoice invoice = Invoice.builder()
+                        .pNum(messageDTO.getPNum())
+                        .msg(messageDTO.getMsg())
+                        .receiveTime(messageDTO.getTime())
+                        .user(user)
+                        .payee(responseDto.PAYEE())
+                        .cost(responseDto.COST())
+                        .invoiceTime(responseDto.TIME())
+                        .paymentReason(responseDto.PAYMENTREASON())
+                        .build();
+
                 invoiceRepository.save(invoice);
             } else {
                 log.error("Failed to get a successful response for category '납부 예정'");
@@ -256,23 +280,35 @@ public class MessageService {
 
     }
 
-    private void processAutoCategory(Message message) {
+    private void processAutoCategory(MessageDTO messageDTO,  UserEntity user) {
         try {
-            RequestDto2 requestDto2 = new RequestDto2(message.getMsg());
-            String requestBody = objectMapper.writeValueAsString(requestDto2);
+            NerRequestDto nerRequestDto = new NerRequestDto(messageDTO.getMsg());
 
-            ResponseEntity<AutoTransferResponseDto> responseEntity = requestToApi(
-                    "/keywords/automatic_transfer",
-                    requestBody,
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String requestBody = objectMapper.writeValueAsString(nerRequestDto);
+
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<AutoTransferResponseDto> responseEntity = restTemplate.exchange(
+                    HOST + "/keywords/automatic_transfer",
                     HttpMethod.POST,
+                    entity,
                     AutoTransferResponseDto.class);
 
             if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
                 AutoTransferResponseDto responseDto = responseEntity.getBody();
-                AutoTransfer autoTransfer = new AutoTransfer();
-                autoTransfer.setBank(responseDto.BANK());
-                autoTransfer.setCompany(responseDto.COMPANY());
-                autoTransfer.setMessage(message); // Message 엔티티와 연관
+
+                AutoTransfer autoTransfer = AutoTransfer.builder()
+                        .pNum(messageDTO.getPNum())
+                        .msg(messageDTO.getMsg())
+                        .receiveTime(messageDTO.getTime())
+                        .user(user)
+                        .bank(responseDto.BANK())
+                        .company(responseDto.COMPANY())
+                        .build();
+
                 autoTransferRepository.save(autoTransfer);
             } else {
                 log.error("Failed to get a successful response for category '자동 이체'");

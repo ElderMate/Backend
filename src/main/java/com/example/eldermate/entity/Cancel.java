@@ -2,38 +2,21 @@ package com.example.eldermate.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
-@Setter
 @Getter
 @NoArgsConstructor
-@ToString
+@SuperBuilder
 // 결제 취소
-public class Cancel {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Cancel extends Message{
 
     private String method;
 
     private String location;
 
-    private String time;
+    private String cancelTime;
 
     private String cost;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "msgId", nullable = false)
-    private Message message;
-
-    @Builder
-    public Cancel(String method, String location, String time, String cost, Message message){
-        this.method = method;
-        this.location = location;
-        this.time = time;
-        this.cost = cost;
-        this.message = message;
-    }
 
 }

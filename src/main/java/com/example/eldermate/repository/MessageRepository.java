@@ -10,11 +10,7 @@ import java.util.List;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
-    @Query("""
-    SELECT m
-    FROM Message m
-    WHERE m.id IN (:ids)
-""")
+    @Query("SELECT m FROM Message m WHERE m.id IN (:ids)")
     List<Message> findAllByIds(List<Long> ids);
     List<Message> findAllByUser(UserEntity user);
 }

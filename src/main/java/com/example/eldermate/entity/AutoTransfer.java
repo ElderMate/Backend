@@ -5,22 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Entity
-@Setter
 @Getter
 @NoArgsConstructor
-@ToString
-public class AutoTransfer {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+@SuperBuilder
+public class AutoTransfer extends Message {
     private String bank;
 
     private String company;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "msgId", nullable = false)
-    private Message message;
 }

@@ -5,29 +5,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Entity
-@Setter
 @Getter
 @NoArgsConstructor
-@ToString
+@SuperBuilder
 // 납부 예정
-public class Invoice {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class Invoice extends  Message{
     private String payee;
 
     private String cost;
 
-    private String time;
+    private String invoiceTime;
 
     private String paymentReason;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "msgId", nullable = false)
-    private Message message;
-
 }
