@@ -5,12 +5,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Entity
-@Setter
 @Getter
 @NoArgsConstructor
-@ToString
+@SuperBuilder
 // 계좌 개설
 public class Open extends Message {
 

@@ -2,12 +2,12 @@ package com.example.eldermate.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
-@Setter
 @Getter
 @NoArgsConstructor
-@ToString
+@SuperBuilder
 // 결제 취소
 public class Cancel extends Message{
 
@@ -15,16 +15,8 @@ public class Cancel extends Message{
 
     private String location;
 
-    private String time;
+    private String cancelTime;
 
     private String cost;
-
-    @Builder
-    public Cancel(String method, String location, String time, String cost){
-        this.method = method;
-        this.location = location;
-        this.time = time;
-        this.cost = cost;
-    }
 
 }

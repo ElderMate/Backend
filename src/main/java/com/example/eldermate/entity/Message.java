@@ -2,17 +2,17 @@ package com.example.eldermate.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
 @Entity
 //내부 데이터를 뽑고 초기화하기 위해
-@Setter
 @Getter
 @NoArgsConstructor
-@ToString
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn
+@SuperBuilder // Lombok 빌더 확장
 public class Message {
 
     @Id
@@ -26,7 +26,7 @@ public class Message {
     private String msg;
 
     @Column(nullable = false)
-    private LocalDateTime time;
+    private LocalDateTime receiveTime;
 
     @Column
     private Boolean confirm;
@@ -43,14 +43,6 @@ public class Message {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", nullable = false)
     private UserEntity user;
-
-    @Builder
-    public Message(String pNum, String msg, LocalDateTime time, UserEntity user){
-        this.pNum = pNum;
-        this.msg = msg;
-        this.time = time;
-        this.user = user;
-    }
 
     public void setIsProblem(){
         this.isProblem = true;
