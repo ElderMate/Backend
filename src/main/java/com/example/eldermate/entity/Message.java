@@ -7,7 +7,6 @@ import lombok.experimental.SuperBuilder;
 import java.time.LocalDateTime;
 
 @Entity
-//내부 데이터를 뽑고 초기화하기 위해
 @Getter
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -29,16 +28,13 @@ public class Message {
     private LocalDateTime receiveTime;
 
     @Column
-    private Boolean confirm;
+    private Boolean confirm = false;
 
     @Column
-    private Boolean isProblem;
+    private Boolean isProblem = false;
 
     @Column
     private String problemReason;
-
-    @Column
-    private String category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", nullable = false)
@@ -49,5 +45,8 @@ public class Message {
     }
 
     public void setConfirm() {this.confirm = true;}
-    
+
+    public void setProblemReason(String reason){
+        this.problemReason = reason;
+    }
 }

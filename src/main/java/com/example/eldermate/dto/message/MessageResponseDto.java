@@ -1,4 +1,4 @@
-package com.example.eldermate.dto;
+package com.example.eldermate.dto.message;
 
 import com.example.eldermate.entity.Message;
 
@@ -17,10 +17,10 @@ public record MessageResponseDto(
         return new MessageResponseDto(
                 message.getPNum(),
                 message.getMsg(),
-                message.getTime(),
+                message.getReceiveTime(),
                 message.getConfirm(),
                 message.getIsProblem(),
                 message.getProblemReason(),
-                message.getCategory());
+                message.getClass().getSimpleName());
     }
 }

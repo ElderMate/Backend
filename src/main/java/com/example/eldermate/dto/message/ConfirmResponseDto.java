@@ -1,4 +1,4 @@
-package com.example.eldermate.dto;
+package com.example.eldermate.dto.message;
 
 public record ConfirmResponseDto(
         String METHOD,

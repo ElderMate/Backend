@@ -1,6 +1,8 @@
 package com.example.eldermate.controller;
 
 import com.example.eldermate.dto.*;
+import com.example.eldermate.dto.message.MessageDTO;
+import com.example.eldermate.dto.message.MessageResponseDto;
 import com.example.eldermate.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
