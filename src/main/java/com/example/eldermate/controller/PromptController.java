@@ -1,8 +1,7 @@
 package com.example.eldermate.controller;
 
 import com.example.eldermate.dto.CustomUserDetails;
-import com.example.eldermate.dto.PromptEndRequestDto;
-import com.example.eldermate.dto.PromptStartResponseDto;
+import com.example.eldermate.dto.prompt.PromptStartResponseDto;
 import com.example.eldermate.service.PromptService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;

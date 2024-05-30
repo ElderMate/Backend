@@ -1,4 +1,4 @@
-package com.example.eldermate.dto;
+package com.example.eldermate.dto.prompt;
 
 import java.util.List;
 
