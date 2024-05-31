@@ -11,6 +11,7 @@ import com.example.eldermate.repository.OpenRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PromptService {
     private final MessageRepository messageRepository;
     private final AutoTransferRepository autoTransferRepository;
@@ -141,10 +143,11 @@ public class PromptService {
             List<String> reasons = response.getBody().reasons();
 
             List<Message> messages = messageRepository.findAllByIds(messageIds);
-
+            log.info(messages.toString());
             // messages 리스트를 순회하면서 각 Message에 문제 상태와 이유를 설정
             for (int i = 0; i < messages.size(); i++) {
                 Message message = messages.get(i);
+                log.info(message.toString());
                 message.setIsProblem(); // 문제 상태를 true로 설정
                 message.setProblemReason(reasons.get(i));
             }

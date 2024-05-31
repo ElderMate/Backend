@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn
 @SuperBuilder // Lombok 빌더 확장
+@ToString
 public class Message {
 
     @Id
@@ -28,10 +29,10 @@ public class Message {
     private LocalDateTime receiveTime;
 
     @Column
-    private Boolean confirm = false;
+    private Boolean confirm;
 
     @Column
-    private Boolean isProblem = false;
+    private Boolean isProblem;
 
     @Column
     private String problemReason;
