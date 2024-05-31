@@ -95,7 +95,6 @@ public class PromptService {
         }
 
         try {
-
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -111,6 +110,7 @@ public class PromptService {
             return PromptStartResponseDto.from(response.getBody(), fileName);
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("외부API 요청 실패");
         }
 
