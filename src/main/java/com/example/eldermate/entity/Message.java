@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn
@@ -47,7 +48,4 @@ public class Message {
 
     public void setConfirm() {this.confirm = true;}
 
-    public void setProblemReason(String reason){
-        this.problemReason = reason;
-    }
 }
