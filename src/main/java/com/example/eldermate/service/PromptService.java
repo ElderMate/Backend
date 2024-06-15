@@ -3,11 +3,6 @@ package com.example.eldermate.service;
 import com.example.eldermate.dto.prompt.*;
 import com.example.eldermate.entity.*;
 import com.example.eldermate.repository.*;
-import com.example.eldermate.repository.AutoTransferRepository;
-import com.example.eldermate.repository.CancelRepository;
-import com.example.eldermate.repository.ConfirmRepository;
-import com.example.eldermate.repository.InvoiceRepository;
-import com.example.eldermate.repository.OpenRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -31,11 +26,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class PromptService {
     private final MessageRepository messageRepository;
-    private final AutoTransferRepository autoTransferRepository;
-    private final CancelRepository cancelRepository;
-    private final ConfirmRepository confirmRepository;
-    private final InvoiceRepository invoiceRepository;
-    private final OpenRepository openRepository;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
