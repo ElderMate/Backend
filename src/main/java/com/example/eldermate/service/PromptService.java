@@ -3,11 +3,6 @@ package com.example.eldermate.service;
 import com.example.eldermate.dto.prompt.*;
 import com.example.eldermate.entity.*;
 import com.example.eldermate.repository.*;
-import com.example.eldermate.repository.AutoTransferRepository;
-import com.example.eldermate.repository.CancelRepository;
-import com.example.eldermate.repository.ConfirmRepository;
-import com.example.eldermate.repository.InvoiceRepository;
-import com.example.eldermate.repository.OpenRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -31,11 +26,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class PromptService {
     private final MessageRepository messageRepository;
-    private final AutoTransferRepository autoTransferRepository;
-    private final CancelRepository cancelRepository;
-    private final ConfirmRepository confirmRepository;
-    private final InvoiceRepository invoiceRepository;
-    private final OpenRepository openRepository;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
@@ -47,41 +37,40 @@ public class PromptService {
         String fileName = createFileName(user.getUsername());
 
         //2. DB에서 confirm == not인 문자들 가져오기
-        List<AutoTransfer> autoTransfers = autoTransferRepository.findNotConfirmAllByUser(user);
-        List<Cancel> cancels = cancelRepository.findNotConfirmAllByUser(user);
-        List<Confirm> confirms = confirmRepository.findNotConfirmAllByUser(user);
-        List<Invoice> invoices = invoiceRepository.findNotConfirmAllByUser(user);
-        List<Open> opens = openRepository.findNotConfirmAllByUser(user);
+        List<Message> messages = messageRepository.findNotConfirmAllByUser(user);
+
+        log.info(messages.toString());
 
         //3. 엔티티를 DTO로 매핑
-        List<AutoTransferDto> autoTransferDtos = autoTransfers.stream()
-                .map(at -> new AutoTransferDto(at.getId(), at.getBank(), at.getCompany()))
-                .collect(Collectors.toList());
+        List<AutoTransferDto> autoTransferDtos = new ArrayList<>();
+        List<CancelDto> cancelDtos = new ArrayList<>();
+        List<ConfirmDto> confirmDtos = new ArrayList<>();
+        List<InvoiceDto> invoiceDtos = new ArrayList<>();
+        List<OpenDto> openDtos = new ArrayList<>();
 
-        List<CancelDto> cancelDtos = cancels.stream()
-                .map(c -> new CancelDto(c.getId(), c.getMethod(), c.getLocation(), c.getCancelTime(), c.getCost()))
-                .collect(Collectors.toList());
-
-        List<ConfirmDto> confirmDtos = confirms.stream()
-                .map(cf -> new ConfirmDto(cf.getId(), cf.getMethod(), cf.getLocation(), cf.getConfirmTime(), cf.getCost()))
-                .collect(Collectors.toList());
-
-        List<InvoiceDto> invoiceDtos = invoices.stream()
-                .map(iv -> new InvoiceDto(iv.getId(), iv.getPayee(), iv.getCost(), iv.getInvoiceTime(), iv.getPaymentReason()))
-                .collect(Collectors.toList());
-
-        List<OpenDto> openDtos = opens.stream()
-                .map(op -> new OpenDto(op.getId(), op.getBank(), op.getType()))
-                .collect(Collectors.toList());
+        for (Message message : messages) {
+            if (message instanceof AutoTransfer) {
+                AutoTransfer autoTransfer = (AutoTransfer) message;
+                autoTransferDtos.add(new AutoTransferDto(autoTransfer.getId(), autoTransfer.getBank(), autoTransfer.getCompany()));
+            } else if (message instanceof Cancel) {
+                Cancel cancel = (Cancel) message;
+                cancelDtos.add(new CancelDto(cancel.getId(), cancel.getMethod(), cancel.getLocation(), cancel.getCancelTime(), cancel.getCost()));
+            } else if (message instanceof Confirm) {
+                Confirm confirm = (Confirm) message;
+                confirmDtos.add(new ConfirmDto(confirm.getId(), confirm.getMethod(), confirm.getLocation(), confirm.getConfirmTime(), confirm.getCost()));
+            } else if (message instanceof Invoice) {
+                Invoice invoice = (Invoice) message;
+                invoiceDtos.add(new InvoiceDto(invoice.getId(), invoice.getPayee(), invoice.getCost(), invoice.getInvoiceTime(), invoice.getPaymentReason()));
+            } else if (message instanceof Open) {
+                Open open = (Open) message;
+                openDtos.add(new OpenDto(open.getId(), open.getBank(), open.getType()));
+            }
+        }
 
         //4. 가져온 문자들 confirm == true로 설정하기
-        autoTransfers.forEach(Message::setConfirm);
-        cancels.forEach(Message::setConfirm);
-        confirms.forEach(Message::setConfirm);
-        invoices.forEach(Message::setConfirm);
-        opens.forEach(Message::setConfirm);
+        messages.forEach(Message::setConfirm);
 
-        //5. 해당 문자 정보들 FastAPI 저달
+        //5. 해당 문자 정보들 FastAPI 전달
         PromptStartRequestDto requestDto = new PromptStartRequestDto(
                 fileName,
                 autoTransferDtos,
@@ -91,11 +80,13 @@ public class PromptService {
                 openDtos
         );
 
+        log.info(requestDto.toString());
+
         String body;
         try {
             body = objectMapper.writeValueAsString(requestDto);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("requset body 생성 실패");
+            throw new RuntimeException("request body 생성 실패");
         }
 
         try {
@@ -117,8 +108,8 @@ public class PromptService {
             e.printStackTrace();
             throw new RuntimeException("외부API 요청 실패");
         }
-
     }
+
 
     public void endPrompt(UserEntity user, String fileName){
         String body;
