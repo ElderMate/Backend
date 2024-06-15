@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class MessageService {
 
     private final MessageRepository messageRepository;
@@ -211,7 +213,7 @@ public class MessageService {
             HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
             ResponseEntity<OpenResponseDto> responseEntity = restTemplate.exchange(
-                    HOST +  "/keywords/account_openning",
+                    HOST +  "/keywords/account_opening",
                     HttpMethod.POST,
                     entity,
                     OpenResponseDto.class);
