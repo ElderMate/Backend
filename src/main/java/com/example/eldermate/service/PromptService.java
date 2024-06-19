@@ -36,10 +36,10 @@ public class PromptService {
         //1. 파일 이름 생성
         String fileName = createFileName(user.getUsername());
 
-        //2. DB에서 confirm == not인 문자들 가져오기
+        //2. DB에서 상담 처리가 필요한 문자들 가져오기
         List<Message> messages = messageRepository.findNotConfirmAllByUser(user);
 
-        log.info(messages.toString());
+        log.info("가져온 문자들: " + messages.toString());
 
         //3. 엔티티를 DTO로 매핑
         List<AutoTransferDto> autoTransferDtos = new ArrayList<>();
@@ -67,10 +67,7 @@ public class PromptService {
             }
         }
 
-        //4. 가져온 문자들 confirm == true로 설정하기
-        messages.forEach(Message::setConfirm);
-
-        //5. 해당 문자 정보들 FastAPI 전달
+        //4. 해당 문자 정보들 FastAPI 전달
         PromptStartRequestDto requestDto = new PromptStartRequestDto(
                 fileName,
                 autoTransferDtos,
@@ -80,7 +77,7 @@ public class PromptService {
                 openDtos
         );
 
-        log.info(requestDto.toString());
+        log.info("DTO: " + requestDto.toString());
 
         String body;
         try {
@@ -89,27 +86,27 @@ public class PromptService {
             throw new RuntimeException("request body 생성 실패");
         }
 
+        ResponseEntity<PromptResponseDto> response;
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
-            ResponseEntity<PromptResponseDto> response = restTemplate.exchange(
+            response = restTemplate.exchange(
                     API_URL + "/reports/start",
                     HttpMethod.POST,
                     entity,
                     PromptResponseDto.class
             );
-
-            return PromptStartResponseDto.from(response.getBody(), fileName);
-
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("외부API 요청 실패");
         }
-    }
 
+        //5. 가져온 문자들 상담완료 처리하기
+        return PromptStartResponseDto.from(response.getBody(), fileName);
+    }
 
     public void endPrompt(UserEntity user, String fileName){
         String body;
