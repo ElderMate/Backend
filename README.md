@@ -1,11 +1,3 @@
-# 참여인원
-
-| [<img src="https://avatars.githubusercontent.com/seayen" width="130px;" style="max-width: 100%;">](https://github.com/seayen) | [<img src="https://avatars.githubusercontent.com/JangWooJin1" width="130px;" style="max-width: 100%;">](https://github.com/JangWooJin1) | [<img src="https://avatars.githubusercontent.com/Ninky0" width="130px;" style="max-width: 100%;">](https://github.com/Ninky0) | [<img src="https://avatars.githubusercontent.com/Junyoung190198" width="130px;" style="max-width: 100%;">](https://github.com/Junyoung190198) |
-|:---------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------:|
-|                                                                   신호현                                                                   |                                                                   장우진                                                                   |                                                                 남인경                                                                 |                                                               민준영                                                               |
-
-<br>
-
 # ElderMate
 
 Eldermate는 **노인 맞춤형 챗봇 기반 데일리 리포팅 서비스**이다. 이 프로젝트는 노인 사용자가 일상에서 접하는 금융 문자 메시지를 자동으로 분류하고, 추출된 데이터를 챗봇을 통해 전달하여 **금융 사건을 쉽게 파악하고 도움을 받을 수 있는 애플리케이션**을 개발하는 것을 목표로 한다.
@@ -73,3 +65,14 @@ Eldermate는 **노인 맞춤형 챗봇 기반 데일리 리포팅 서비스**이
 |---------------------------|----------------------|----------------------|
 | <img width="517" alt="image" src="https://github.com/ElderMate/Backend/assets/110288718/269ae567-929e-4bf3-abc4-f739cf961312"> | <img width="517" alt="image" src="https://github.com/ElderMate/Backend/assets/110288718/2390772b-286c-475f-bc1b-1cd4f4bb9354"> | <img width="517" alt="image" src="https://github.com/ElderMate/Backend/assets/110288718/5ee19887-d8bb-4cab-92a4-3d32d4c1db3d"> |
 | - 문자를 카테고리별 분류됨<br>- 필요한 데이터 추출 후<br>- DB에 가공된 데이터 저장 | - 최초 사용자에게 하루의 금융 리포트(요약)을 제공<br>- 사용자의 질문에 따른 자세한 정보 전달<br>- 대화를 통해 문제가 있는 금융 문자를 파악<br>- STT/TTS 기능을 통해 음성으로도 대화 가능 | - 위의 금융 상담에서 파악된 문자 확인<br>- 이유 및 문자의 정보를 확인 가능 |
+
+<br>
+
+# 참여인원
+| 신호현 | 장우진 | 남인경 | 민준영 |
+|---------------------------|----------------------|----------------------|----------------------|
+| [<img src="https://avatars.githubusercontent.com/seayen" width="130px;" style="max-width: 100%;">](https://github.com/seayen) | [<img src="https://avatars.githubusercontent.com/JangWooJin1" width="130px;" style="max-width: 100%;">](https://github.com/JangWooJin1) | [<img src="https://avatars.githubusercontent.com/Ninky0" width="130px;" style="max-width: 100%;">](https://github.com/Ninky0) | [<img src="https://avatars.githubusercontent.com/Junyoung190198" width="130px;" style="max-width: 100%;">](https://github.com/Junyoung190198) |
+| FE, AI | BE, AI | BE | FE |
+
+<br>
+
