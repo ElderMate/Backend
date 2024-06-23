@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn
+@DiscriminatorColumn(name = "dtype")
 @SuperBuilder // Lombok 빌더 확장
 @ToString
 public class Message {
@@ -41,6 +41,9 @@ public class Message {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", nullable = false)
     private UserEntity user;
+
+    @Column(insertable=false, updatable=false)
+    private String dtype;
 
     public void setIsProblem(){
         this.isProblem = true;

@@ -13,14 +13,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,14 +42,14 @@ public class MessageService {
     @Value("${service.host}")
     private String HOST;
 
-    public List<MessageResponseDto> getAllMessage(CustomUserDetails userDetails){
+    public Slice<MessageResponseDto> getAllMessage(CustomUserDetails userDetails, int pageNo, int size){
         UserEntity user = userDetails.getUserEntity();
 
-        List<Message> messages = messageRepository.findAllByUser(user);
+        PageRequest limit = PageRequest.of(pageNo, size);
 
-        return messages.stream()
-                .map(MessageResponseDto::from)  // MessageResponseDto.from 메소드를 사용하여 변환
-                .collect(Collectors.toList());  // 결과를 List로 수집
+        Slice<MessageResponseDto> messages = messageRepository.findAllDTOByUser(user, limit);
+
+        return messages;
     }
 
     public void saveMessage(MessageDTO messageDTO, CustomUserDetails userDetails) {
