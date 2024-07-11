@@ -44,7 +44,8 @@ Eldermate는 **노인 맞춤형 챗봇 기반 데일리 리포팅 서비스**이
 <br>
 
 # 시스템 아키텍처
-<p align="center"><img width="517" alt="image" src="https://github.com/ElderMate/Backend/assets/110288718/74e1ef46-1883-4c04-9e3b-ddce3fae8b14"></p>
+<p align="center"><img width="875" alt="image" src="https://github.com/ElderMate/Backend/assets/110288718/e717783f-8e4d-4f4a-9be8-b927c68d1e61"></p>
+
 
 <br>
 
